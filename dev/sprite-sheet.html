@@ -1,0 +1,57 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>Chomp! sprite sheet</title>
+<style>
+  body{margin:0;background:#eee;font-family:ui-monospace,monospace;padding:12px}
+  h1{font:600 15px ui-monospace,monospace;margin:0 0 10px}
+  canvas{display:block;margin:0 auto;background:#ddd}
+</style>
+</head><body>
+<h1>Chomp! sprite sheet &mdash; every obstacle variant and dino pose, drawn by web/renderer.js</h1>
+<canvas id="c" width="1900" height="1250"></canvas>
+<script type="module">
+import { drawScene } from '../web/renderer.js';
+const canvas = document.getElementById('c');
+const GROUND = 258;
+
+function frame(night, obstacles, dino, w, hOff) {
+  return { phase:'playing', night, shake:0, score:0, speed:400, distance:0, deathTime:0,
+    dino, obstacles, clouds:[], bumps:[], particles:[], events:[] };
+}
+const mkDino = (o={}) => ({ x:96, y:GROUND, w:46, h:50, vy:0, ducking:false, grounded:true,
+  runPhase:0.25, squash:1, blinking:false, face:'happy', ...o });
+
+// Draw a grid of cells; each cell renders one scenario scaled up.
+const cells = [];
+function cell(label, snap, zoom=1.8) { cells.push({label, snap, zoom}); }
+
+for (const [i,v] of [0,1,2].entries())
+  cell(`small v${v} x1`, frame(0, [{kind:'cactus_small',x:168,y:GROUND,w:22,h:30,variant:v,count:1,wing:0}], mkDino()));
+cell('small x2', frame(0, [{kind:'cactus_small',x:168,y:GROUND,w:49,h:30,variant:0,count:2,wing:0}], mkDino()));
+cell('small x3', frame(0, [{kind:'cactus_small',x:168,y:GROUND,w:76,h:30,variant:1,count:3,wing:0}], mkDino()));
+for (const v of [0,1,2])
+  cell(`big v${v} x1`, frame(0, [{kind:'cactus_big',x:168,y:GROUND,w:28,h:52,variant:v,count:1,wing:0}], mkDino()));
+cell('big x2', frame(0, [{kind:'cactus_big',x:168,y:GROUND,w:62,h:52,variant:0,count:2,wing:0}], mkDino()));
+for (const [i,wg] of [0,0.25,0.5,0.75].entries())
+  cell(`ptero w${wg}`, frame(0, [{kind:'ptero',x:168,y:GROUND-34,w:50,h:30,variant:0,count:1,wing:wg}], mkDino()));
+cell('dino run a', frame(0, [], mkDino({runPhase:0})));
+cell('dino run b', frame(0, [], mkDino({runPhase:0.5})));
+cell('dino jump', frame(0, [], mkDino({y:GROUND-90, grounded:false, face:'jump', squash:1.2})));
+cell('dino duck', frame(0, [], mkDino({ducking:true, w:62, h:30, face:'duck'})));
+cell('dino blink', frame(0, [], mkDino({blinking:true})));
+cell('dino dizzy', frame(0, [], mkDino({face:'dizzy'})));
+cell('night dino', frame(1, [{kind:'cactus_big',x:168,y:GROUND,w:28,h:52,variant:2,count:1,wing:0}], mkDino()));
+
+const ctx = canvas.getContext('2d');
+ctx.fillStyle='#ddd'; ctx.fillRect(0,0,canvas.width,canvas.height);
+const COLS=6, CW=canvas.width/COLS, CH=300;
+cells.forEach((c,i)=>{
+  const cx=(i%COLS)*CW, cy=Math.floor(i/COLS)*CH;
+  ctx.save(); ctx.beginPath(); ctx.rect(cx,cy,CW-4,CH-4); ctx.clip();
+  ctx.translate(cx,cy); ctx.scale(c.zoom,c.zoom);
+  // centre the interesting bit (x 60..460 -> view) and lift the ground into view
+  ctx.translate(-60, -108);
+  drawScene(ctx, c.snap, { shake: false });
+  ctx.restore();
+  ctx.fillStyle='#333'; ctx.font='13px monospace'; ctx.fillText(c.label, cx+6, cy+CH-8);
+  ctx.strokeStyle='#bbb'; ctx.strokeRect(cx,cy,CW-4,CH-4);
+});
+</script></body></html>

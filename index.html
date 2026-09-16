@@ -1,48 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Dino Game</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Chomp! &mdash; a very goofy dino game</title>
+<meta name="description" content="A cute endless-runner dino game. The physics run in real Python, compiled to WebAssembly and executed in your browser.">
+<meta name="theme-color" content="#a8e6cf">
+
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦖</text></svg>">
+<link rel="stylesheet" href="web/styles.css">
+
+<!-- Webfonts are the one optional external resource here, and they are loaded
+     without blocking render. If they never arrive (offline, blocked, or a slow
+     network) the CSS falls back to a rounded system stack and the game plays
+     exactly the same -- unlike the runtime, nothing here is load-bearing. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" media="print" onload="this.media='all'"
+      href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Press+Start+2P&display=swap">
+
+<!-- The WebAssembly runtime is the long pole on a cold load, so start
+     fetching it before the module graph asks for it. -->
+<link rel="preload" href="web/vendor/pyodide/pyodide.asm.wasm" as="fetch" crossorigin>
+<link rel="preload" href="web/vendor/pyodide/python_stdlib.zip" as="fetch" crossorigin>
 </head>
 <body>
-  <div class="logo">
-    <img src="logo.png" alt="">
-  </div>
-  <div class="text">
-    <h1>Dino Game</h1>
-  </div>
+  <noscript>
+    <div class="noscript">This game needs JavaScript (and WebAssembly) enabled. 🦖</div>
+  </noscript>
 
-    <div id="container">
-        <div id="dino">
-            <img src="dino.png" alt="dino">
-        </div>
-        <div id="block">
-            <img src="o2.png" alt="blocks">
-        </div>
-        <div id="road">
-            <img src="road.png" alt="road">
-        </div>
-        <div id="cloud">
-            <img src="cloud.jpg" alt="cloud">
-        </div>
+  <div id="root"></div>
 
-        <div id="gameOver">Game Over</div>
-    </div>
-    <div id="score"> <b>Score :</b><b>00</b></div>
-    <div class="info1">
-      <h4>Press the Space Key to start</h4>
-      <h4>Press the ⇧ Up-Arrow Key to jump</h4>
-
-    </div>
-    <div class="info2">
-      <h4>Please don't press the enter button :)</h4>
-
-
-    </div>
-    <script src="script.js"></script>
+  <!-- Everything is served from this repository. React ships as a UMD global
+       on purpose: it keeps the project buildless, so GitHub Pages can serve
+       the checkout exactly as it is, and there is no CDN to go down or to
+       change a URL out from under the demo. -->
+  <script src="web/vendor/react/react.production.min.js"></script>
+  <script src="web/vendor/react/react-dom.production.min.js"></script>
+  <script type="module" src="web/main.js"></script>
 </body>
 </html>

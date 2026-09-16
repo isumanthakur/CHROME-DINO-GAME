@@ -1,0 +1,11 @@
+# Vendored runtime dependencies: exclude them from language statistics and from
+# diffs, so the repository reads as the project rather than as a copy of React
+# and CPython.
+web/vendor/** linguist-vendored
+web/vendor/** -diff
+
+# The original 2021 project, kept for the before/after in the README.
+legacy/** linguist-vendored
+
+*.wasm binary
+*.zip binary
