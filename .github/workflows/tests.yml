@@ -1,12 +1,18 @@
 name: tests
 
+# Deliberately no `push` trigger. Every path that matters is already covered
+# exactly once: pull requests run this directly, and pushes to main run it via
+# the deploy workflow, which calls it as a gate before publishing. Adding
+# `push` back would run the whole matrix twice for a single commit.
 on:
-  push:
-    branches: ['**']
   pull_request:
   workflow_dispatch:
-  # Lets the Pages deploy reuse this job as a gate before publishing.
   workflow_call:
+
+# A newer commit makes an in-flight run obsolete, so stop paying for it.
+concurrency:
+  group: tests-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   pytest:
