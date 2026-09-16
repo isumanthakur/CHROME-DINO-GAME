@@ -1,0 +1,273 @@
+/* styles.css -- the frame around the canvas.
+   Soft, rounded and pastel: the UI should feel like the same toy as the game. */
+
+:root {
+  --bg: #fdf6ec;
+  --bg-accent: #ffe9d6;
+  --ink: #3f5166;
+  --ink-soft: #7b8ca0;
+  --mint: #7ed99f;
+  --mint-dark: #4bb87b;
+  --pink: #ffb3c6;
+  --sky: #a8ddf5;
+  --card: #fffdf9;
+  --shadow: 0 10px 0 rgba(63, 81, 102, .12), 0 18px 40px rgba(63, 81, 102, .18);
+  --radius: 22px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1d2438;
+    --bg-accent: #262f4a;
+    --ink: #e8eeff;
+    --ink-soft: #9fb0d0;
+    --card: #2a3350;
+    --shadow: 0 10px 0 rgba(0, 0, 0, .25), 0 18px 40px rgba(0, 0, 0, .35);
+  }
+}
+
+/* Font stacks. The webfonts are a progressive enhancement -- these fallbacks
+   are chosen to keep the same rounded, chunky character without them. */
+:root {
+  --font-ui: 'Fredoka', 'Segoe UI Rounded', 'SF Pro Rounded', 'Trebuchet MS',
+             system-ui, -apple-system, sans-serif;
+  --font-score: 'Press Start 2P', 'Courier New', ui-monospace, monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  min-height: 100dvh;
+  font-family: var(--font-ui);
+  color: var(--ink);
+  background: radial-gradient(circle at 20% 0%, var(--bg-accent), var(--bg) 60%);
+  display: flex;
+  justify-content: center;
+  padding: 16px;
+  /* Stop the page bouncing when you mash the jump key on a phone. */
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.noscript {
+  margin: 40px auto; padding: 20px 26px; max-width: 460px; text-align: center;
+  background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
+}
+
+.app {
+  width: 100%;
+  max-width: 1000px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: center;
+}
+
+/* --- header --------------------------------------------------------------- */
+.titlebar { text-align: center; }
+
+.titlebar h1 {
+  font-size: clamp(1.7rem, 5vw, 2.6rem);
+  font-weight: 700;
+  letter-spacing: -.02em;
+  display: flex; align-items: center; justify-content: center; gap: .4rem;
+}
+
+.titlebar__emoji { display: inline-block; animation: bob 2.4s ease-in-out infinite; }
+
+.titlebar__sub {
+  color: var(--ink-soft);
+  font-size: clamp(.72rem, 2.2vw, .88rem);
+  margin-top: 2px;
+}
+
+.titlebar__sub strong { color: var(--mint-dark); }
+
+/* --- stage ---------------------------------------------------------------- */
+.stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 1;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  background: var(--sky);
+  /* The canvas is the game; nothing inside should be text-selectable. */
+  user-select: none;
+  touch-action: none;
+}
+
+.stage__canvas { display: block; width: 100%; height: 100%; }
+
+/* --- HUD ------------------------------------------------------------------ */
+.hud {
+  position: absolute; inset: 0;
+  padding: 12px 14px;
+  display: flex; align-items: flex-start; justify-content: space-between;
+  pointer-events: none;
+  font-family: var(--font-score);
+}
+
+.hud__scores { display: flex; gap: 12px; align-items: baseline; }
+
+/* --hud-ink and --hud-glow are written directly on .stage by the render loop
+   as the sky changes, so the score stays readable through dusk and midnight
+   without re-rendering any React at 60fps. */
+.hud__score {
+  font-size: clamp(.7rem, 2.2vw, 1rem);
+  color: var(--hud-ink, #3f5166);
+  text-shadow: 0 2px 0 var(--hud-glow, rgba(255, 255, 255, .55));
+  transition: color .4s linear;
+}
+
+.hud__best {
+  font-size: clamp(.55rem, 1.8vw, .8rem);
+  color: var(--hud-ink-soft, rgba(63, 81, 102, .6));
+  text-shadow: 0 2px 0 var(--hud-glow, rgba(255, 255, 255, .45));
+  transition: color .4s linear;
+}
+
+.hud__buttons { display: flex; gap: 8px; pointer-events: auto; }
+
+.iconbtn {
+  border: none; cursor: pointer;
+  width: 34px; height: 34px; border-radius: 12px;
+  background: rgba(255, 255, 255, .72);
+  font-size: 1rem; line-height: 1;
+  box-shadow: 0 3px 0 rgba(63, 81, 102, .16);
+  transition: transform .12s ease;
+}
+.iconbtn:hover { transform: translateY(-2px); }
+.iconbtn:active { transform: translateY(1px); box-shadow: 0 1px 0 rgba(63, 81, 102, .16); }
+
+/* --- overlays ------------------------------------------------------------- */
+.overlay {
+  position: absolute; inset: 0;
+  display: grid; place-items: center;
+  padding: 16px;
+  background: var(--overlay-veil, rgba(255, 253, 249, .55));
+  backdrop-filter: blur(3px);
+  animation: fade .18s ease-out;
+}
+
+.overlay--tap { cursor: pointer; }
+
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: clamp(14px, 3vw, 26px) clamp(18px, 4vw, 34px);
+  text-align: center;
+  box-shadow: var(--shadow);
+  max-width: 440px;
+  display: flex; flex-direction: column; gap: 8px; align-items: center;
+}
+
+.card h2 { font-size: clamp(1.2rem, 3.6vw, 1.7rem); font-weight: 700; }
+.card__emoji { font-size: clamp(2rem, 7vw, 3rem); line-height: 1; }
+.card--error { border: 2px dashed var(--pink); }
+
+.muted { color: var(--ink-soft); font-size: .92rem; }
+.small { font-size: .76rem; }
+.best { color: var(--mint-dark); font-weight: 600; }
+
+.keys {
+  display: flex; flex-direction: column; gap: 5px;
+  font-size: .82rem; color: var(--ink-soft); margin: 4px 0;
+}
+
+.keycap {
+  display: inline-block;
+  font-family: var(--font-ui); font-size: .75rem; font-weight: 600;
+  padding: 2px 7px; border-radius: 7px;
+  background: var(--bg-accent); color: var(--ink);
+  box-shadow: 0 2px 0 rgba(63, 81, 102, .18);
+}
+
+.btn {
+  border: none; cursor: pointer;
+  font-family: inherit; font-weight: 600; font-size: .95rem;
+  padding: 10px 22px; border-radius: 999px;
+  color: #1f4733; background: var(--mint);
+  box-shadow: 0 4px 0 var(--mint-dark);
+  transition: transform .12s ease, box-shadow .12s ease;
+  margin-top: 4px;
+}
+.btn:hover { transform: translateY(-2px); box-shadow: 0 6px 0 var(--mint-dark); }
+.btn:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--mint-dark); }
+.btn--big { font-size: 1.05rem; padding: 12px 28px; }
+
+.scoreline { display: flex; gap: 26px; justify-content: center; margin: 6px 0; }
+.scoreline > div { display: flex; flex-direction: column; }
+.scoreline strong { font-family: var(--font-score); font-size: 1.05rem; }
+
+.badge {
+  background: var(--bg-accent); color: var(--ink);
+  border-radius: 999px; padding: 5px 14px;
+  font-weight: 600; font-size: .85rem;
+}
+
+/* --- toasts --------------------------------------------------------------- */
+.toasts {
+  position: absolute; top: 46px; left: 0; right: 0;
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  pointer-events: none;
+}
+
+.toast {
+  background: rgba(255, 255, 255, .9);
+  color: var(--mint-dark);
+  font-weight: 600; font-size: .85rem;
+  padding: 5px 14px; border-radius: 999px;
+  box-shadow: 0 3px 0 rgba(63, 81, 102, .12);
+  animation: pop .3s cubic-bezier(.34, 1.56, .64, 1), floatUp 1.5s ease-out forwards;
+}
+
+/* --- touch controls ------------------------------------------------------- */
+.touch { display: none; gap: 10px; width: 100%; }
+
+.touch__btn {
+  flex: 1; border: none; cursor: pointer;
+  font-family: inherit; font-weight: 600; font-size: 1rem;
+  padding: 14px; border-radius: 16px;
+  background: var(--card); color: var(--ink);
+  box-shadow: 0 4px 0 rgba(63, 81, 102, .16);
+  touch-action: none;
+}
+.touch__btn:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(63, 81, 102, .16); }
+
+/* Only worth the screen space where there is no keyboard. */
+@media (hover: none) and (pointer: coarse) {
+  .touch { display: flex; }
+}
+
+/* --- footer --------------------------------------------------------------- */
+.footer {
+  display: flex; flex-wrap: wrap; gap: 6px 18px;
+  justify-content: space-between; width: 100%;
+  color: var(--ink-soft); font-size: .76rem;
+}
+
+.footer__stats { font-variant-numeric: tabular-nums; }
+
+/* --- animation ------------------------------------------------------------ */
+@keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes wobble { 0%, 100% { transform: rotate(-8deg); } 50% { transform: rotate(8deg); } }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pop { from { transform: scale(.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes floatUp { to { transform: translateY(-16px); opacity: 0; } }
+
+.bob { animation: bob 2s ease-in-out infinite; }
+.wobble { animation: wobble 1.1s ease-in-out infinite; }
+
+/* Respect people who would rather the page held still. */
+@media (prefers-reduced-motion: reduce) {
+  .bob, .wobble, .titlebar__emoji { animation: none; }
+  .toast { animation: pop .2s ease-out; }
+}
+
+@media (max-width: 620px) {
+  body { padding: 10px; }
+  /* A little taller than the 3:1 world box, so the playfield is not a thin
+     strip on a phone. The renderer fills the extra height with sky. */
+  .stage { aspect-ratio: 12 / 5; }
+}

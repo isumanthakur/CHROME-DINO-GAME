@@ -1,0 +1,4 @@
+# The game engine itself has no dependencies at all -- it is pure standard
+# library, which is what lets it run unchanged under both CPython and Pyodide.
+# This file is only what is needed to run the tests.
+pytest>=8.0

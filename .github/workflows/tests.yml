@@ -1,0 +1,63 @@
+name: tests
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+  # Lets the Pages deploy reuse this job as a gate before publishing.
+  workflow_call:
+
+jobs:
+  pytest:
+    name: engine tests (py${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # The engine is pure standard library, so it should hold across every
+        # supported CPython -- including the 3.12 that Pyodide ships in the
+        # browser, which is the version that actually runs the game.
+        python: ['3.10', '3.11', '3.12', '3.13']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Install test dependencies
+        run: python -m pip install --upgrade pip -r requirements-dev.txt
+
+      - name: Run the engine test suite
+        run: python -m pytest -v
+
+      - name: Check the engine imports with no third-party packages available
+        # The engine must never grow a dependency: if it does, it stops being
+        # loadable in the browser, where there is no pip.
+        run: |
+          python - <<'PY'
+          import sys, pathlib
+          sys.path.insert(0, 'python')
+          import dinoengine
+          root = pathlib.Path('python/dinoengine')
+          allowed = {'dataclasses', 'math', 'sys', 'json', 'typing'}
+          bad = []
+          for path in sorted(root.glob('*.py')):
+              for line in path.read_text().splitlines():
+                  line = line.strip()
+                  if line.startswith('import ') and not line.startswith('import .'):
+                      name = line.split()[1].split('.')[0]
+                      if name not in allowed and name != 'dinoengine':
+                          bad.append(f'{path.name}: {line}')
+                  elif line.startswith('from ') and not line.startswith('from .'):
+                      name = line.split()[1].split('.')[0]
+                      if name not in allowed:
+                          bad.append(f'{path.name}: {line}')
+          if bad:
+              print('Non-stdlib import found in the engine:')
+              print('\n'.join(bad))
+              sys.exit(1)
+          print(f'dinoengine {dinoengine.__version__}: stdlib only, good.')
+          PY
